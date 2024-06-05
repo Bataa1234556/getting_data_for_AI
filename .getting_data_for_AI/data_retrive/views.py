@@ -53,7 +53,7 @@ def scrape_data():
                 manufacturer = soup.find('h1', class_='title-announcement').text.strip().split(" ")[0]
                 model = ' '.join(re.findall(r'^(.+?),', soup.find('h1', class_='title-announcement').text.strip())).split(' ', 1)[1]
 
-                engine_capacity_element = soup.select_one('ul.chars-column li:nth-of-type(1) span.value-chars:nth-of-type(2)')
+                engine_capacity_element = soup.select_one('ul.chars-column li:nth-of-type(1) a.value-chars')
                 engine_capacity = engine_capacity_element.text.strip() if engine_capacity_element else "Unknown"
 
                 transmission_element = soup.select_one('ul.chars-column li:nth-of-type(2) a.value-chars')
@@ -80,23 +80,13 @@ def scrape_data():
                 interior_color_element = soup.select_one('ul.chars-column li:nth-of-type(9) span.value-chars:nth-of-type(2)')
                 interior_color = interior_color_element.text.strip() if interior_color_element else None
 
-                lease_element = soup.select_one('ul.chars-column li:nth-of-type(10) a.value-chars')
-                lease = lease_element.text.strip() if lease_element else None
 
-                address_element = soup.select_one('ul.chars-column li:nth-of-type(11) span.value-chars:nth-of-type(2)')
-                address = address_element.text.strip() if address_element else None
-
-                drive_type_element = soup.select_one('ul.chars-column li:nth-of-type(12) a.value-chars')
+                drive_type_element = soup.select_one('ul.chars-column li:nth-of-type(11) a.value-chars')
                 drive_type = drive_type_element.text.strip() if drive_type_element else None
 
-                mileage_element = soup.select_one('ul.chars-column li:nth-of-type(13) a.value-chars')
+                mileage_element = soup.select_one('ul.chars-column li:nth-of-type(12) a.value-chars')
                 mileage = mileage_element.text.strip() if mileage_element else None
 
-                license_plate_element = soup.select_one('ul.chars-column li:nth-of-type(14) a.value-chars')
-                license_plate = license_plate_element.text.strip() if license_plate_element else None
-
-                doors_element = soup.select_one('ul.chars-column li:nth-of-type(15) span.value-chars:nth-of-type(2)')
-                doors = doors_element.text.strip() if doors_element else None
 
                 price_text = soup.select_one('div.announcement-price__cost meta:nth-of-type(2)')
                 price = int(re.findall(r'[0-9]+', str(price_text))[0]) if price_text else None
@@ -120,12 +110,8 @@ def scrape_data():
                             'import_year': import_year,
                             'drive': drive,
                             'interior_color': interior_color,
-                            'lease': lease,
-                            'address': address,
                             'drive_type': drive_type,
                             'mileage': mileage,
-                            'license_plate': license_plate,
-                            'doors': doors,
                             'price': price,
                         }
                     )
