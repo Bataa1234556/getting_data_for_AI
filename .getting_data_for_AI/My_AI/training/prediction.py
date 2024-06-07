@@ -1,36 +1,46 @@
-import torch
+import os
 import pandas as pd
-from model_training import CarPriceModel  # Import the trained model from trained_model.py
+from sklearn.preprocessing import LabelEncoder, StandardScaler, PolynomialFeatures
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+import torch
+from torch.utils.data import Dataset, DataLoader, random_split
+import torch.nn as nn
+import torch.optim as optim
+import numpy as np
+import matplotlib.pyplot as plt
+import torch.nn.functional as F
+from sklearn.ensemble import GradientBoostingRegressor
+import joblib
+from model_training import preprocess_sample_data
 
-# Define the synthetic data
-data = {
-    "Manufacturer": ["Honda", "Honda", "Honda", "Honda", "Honda", "Honda"],
-    "Model": ["CR-V", "Fit", "Fit", "CR-Z", "HR-V", "Insight"],
-    "Engine Capacity": [1.5, 1.5, 1.5, 1.5, 1.8, 1.3],
-    "Transmission": ["Автомат", "Автомат", "Автомат", "Автомат", "Автомат", "Автомат"],
-    "Steering": ["Буруу", "Буруу", "Буруу", "Буруу", "Буруу", "Буруу"],
-    "Type": ["Жийп", "Суудлын тэрэг", "Гэр бүлийн", "Суудлын тэрэг", "Гэр бүлийн", "Суудлын тэрэг"],
-    "Color": ["Хар", "Саарал", "Саарал", "Цэнхэр", "Саарал", "Цагаан"],
-    "Manufactured Year": [2021, 2014, 2014, 2011, 2008, 2009],
-    "Import Year": [2024, 2020, 2021, 2023, 2018, 2016],
-    "Drive": ["Бензин", "Хайбрид", "Хайбрид", "Хайбрид", "Бензин", "Бензин"],
-    "Interior Color": ["Хар", "Саарал", "Хар", "Саарал", "Саарал", "Бусад"],
-    "Drive Type": ["Бүх дугуй 4WD", "Бүх дугуй 4WD", "Урдаа FWD", "Урдаа FWD", "Бүх дугуй 4WD", "Урдаа FWD"],
-    "Mileage": [56000, 800000, 100000, 153000, 180, 256000]
+# Load label_encoders, scaler, poly
+label_encoders = joblib.load('label_encoders.pkl')
+scaler = joblib.load('scaler.pkl')
+poly = joblib.load('poly.pkl')
+
+# Define or provide sample_data
+sample_data = {
+    'Uildverlegch': [4],  # List of values for each column
+    'Mark': [137],
+    'Motor_bagtaamj': [3500],
+    'Xrop': [1],
+    'Joloo': [1],
+    'Uildverlesen_on': [2014],
+    'Orj_irsen_on': [2022],
+    'Hudulguur': [0],
+    'Hutlugch': [2],
+    'Yavsan_km': [76000]
 }
 
-
-def preprocessing_sample_data(data):
-    data_tensor = torch.tensor([
-        data["Engine Capacity"],
-        data["Manufactured Year"],
-        data["Import Year"],
-        data["Mileage"],
-    ])
+# Load the trained GBR model
+loaded_gbr_model = joblib.load('gbr_models.pkl')
 
 
-    data_tensor = data_tensor.transpose(0,1)
-    return data_tensor
 
-data_tensor = preprocessing_sample_data(data)
+# Preprocess sample data
+sample_features_tensor = preprocess_sample_data(sample_data, label_encoders, scaler, poly)
 
+# Make predictions using Gradient Boosting Regressor
+gbr_prediction = loaded_gbr_model.predict(sample_features_tensor.numpy())
+print("Predicted Price:", gbr_prediction[0])
+print("Gradient Boosting Regressor Prediction:", gbr_prediction)

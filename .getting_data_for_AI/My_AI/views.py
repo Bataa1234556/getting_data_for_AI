@@ -1,8 +1,10 @@
 from django.shortcuts import render
-from data_retrive.models import CarData 
+from data_retrive.models import CarData
 from django.http import HttpResponse
 import pandas as pd
 import re
+import numpy as np
+from sklearn.preprocessing import LabelEncoder
 
 def clean_engine_capacity(engine_capacity):
     if isinstance(engine_capacity, str):
@@ -12,8 +14,8 @@ def clean_engine_capacity(engine_capacity):
 
 def clean_mileage(mileage):
     if isinstance(mileage, str):
-        match = re.search(r'\d+', mileage.replace(',', ''))
-        return int(match.group()) if match else None
+        mileage = re.sub(r'[^\d]', '', mileage)
+        return int(mileage) if mileage else None
     return mileage
 
 def car_data_view(request):
@@ -56,15 +58,34 @@ def car_data_view(request):
         data['Price'].append(car_data.price)
         data['Unique ID'].append(car_data.unique_id)
 
-
     df = pd.DataFrame(data)
 
+    # Convert 'Posted Date' to datetime
+    df['Posted Date'] = pd.to_datetime(df['Posted Date'], errors='coerce')
 
-    df['Engine Capacity'].fillna(df['Engine Capacity'].mean(), inplace=True)
+    # Remove rows with invalid 'Posted Date'
+    df = df.dropna(subset=['Posted Date'])
 
+    # Drop the 'Posted Date' column
+    df.drop(['Posted Date'], axis=1, inplace=True)
 
-    df = df[(df['Mileage'] < 1000000) & (df['Mileage'] > 0)]  # Example filter
+    # Encoding all categorical text data to numerical values using LabelEncoder
+    categorical_columns = ['Manufacturer', 'Model', 'Transmission', 'Steering', 'Type', 'Color', 'Drive', 'Interior Color', 'Drive Type']
+    label_encoders = {}
 
+    for column in categorical_columns:
+        le = LabelEncoder()
+        df[column] = le.fit_transform(df[column])
+        label_encoders[column] = le
+
+    # Log transformation for skewed numerical features (if applicable)
+    df['Mileage'] = np.log1p(df['Mileage'])
+
+    # Drop irrelevant columns or features (if applicable)
+    df.drop(['Unique ID'], axis=1, inplace=True)
+
+    # Filter based on mileage and manufacturing year
+    df = df[(df['Mileage'] < 1000000) & (df['Mileage'] > 0) & (df['Manufactured Year'] > 2000)]
 
     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     response['Content-Disposition'] = 'attachment; filename="car_data.xlsx"'
