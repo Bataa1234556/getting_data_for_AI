@@ -1,17 +1,13 @@
 import os
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder, StandardScaler, PolynomialFeatures
-from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score, mean_absolute_percentage_error
 import torch
-from torch.utils.data import Dataset, DataLoader, random_split
-import torch.nn as nn
-import torch.optim as optim
+from torch.utils.data import Dataset, DataLoader
 import numpy as np
-import matplotlib.pyplot as plt
-import torch.nn.functional as F
-from sklearn.ensemble import GradientBoostingRegressor
-from sklearn.model_selection import GridSearchCV
 import joblib
+import xgboost as xgb
+import os 
 
 # Function to preprocess data from an Excel file
 def preprocess_data(file_path, degree=2):
@@ -97,15 +93,15 @@ class CarPriceDataset(Dataset):
 
 # Function to calculate regression accuracy
 def regression_accuracy(y_pred, y_true, tolerance=0.1):
-    y_pred = target_scaler.inverse_transform(y_pred.detach().numpy())
-    y_true = target_scaler.inverse_transform(y_true.detach().numpy())
+    y_pred = target_scaler.inverse_transform(y_pred)
+    y_true = target_scaler.inverse_transform(y_true)
     diff = np.abs(y_pred - y_true)
     accurate_preds = (diff <= tolerance * np.abs(y_true)).sum()
     return accurate_preds
 
-file_path = r'C:\Users\dvkka\Documents\AI-test-training\getting_data_for_AI\.getting_data_for_AI\My_AI\excel\version1.xlsx'
+file_path = r'C:\Users\batkh\Documents\getting_data_for_AI\.getting_data_for_AI\My_AI\excel\version1.xlsx'
 features_tensor, target_tensor, label_encoders, scaler, target_scaler, poly = preprocess_data(file_path)
-print("Datapreprocessed successfully!")
+print("Data preprocessed successfully!")
 
 # Split data into training and validation sets
 print("Length of features tensor:", len(features_tensor))
@@ -113,7 +109,6 @@ print("Length of target tensor:", len(target_tensor))
 
 # Calculate split sizes
 # Split indices
-
 train_size = int(0.8 * len(features_tensor))
 test_size = len(features_tensor) - train_size
 indices = list(range(len(features_tensor)))
@@ -121,58 +116,50 @@ train_indices = indices[:train_size]
 val_indices = indices[train_size:]
 
 # Create subsets
-train_features = features_tensor[train_indices]
-val_features = features_tensor[val_indices]
-train_targets = target_tensor[train_indices]
-val_targets = target_tensor[val_indices]
+train_features = features_tensor[train_indices].numpy()
+val_features = features_tensor[train_size:].numpy()
+train_targets = target_tensor[train_indices].numpy().ravel()
+val_targets = target_tensor[train_size:].numpy().ravel()
 
+# Define XGBoost model
+xgboost_model = xgb.XGBRegressor(
+    objective='reg:squarederror',
+    n_estimators=100,
+    learning_rate=0.1,
+    max_depth=6,
+    random_state=42
+)
 
+# Train XGBoost model
+xgboost_model.fit(train_features, train_targets)
 
-# Create data loaders
-batch_size = 32
-train_dataset = CarPriceDataset(train_features, train_targets)
-val_dataset = CarPriceDataset(val_features, val_targets)
-train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
+# Evaluate XGBoost model
+y_pred = xgboost_model.predict(val_features)
+y_true = val_targets
 
-# Define Gradient Boosting Regressor model
-param_grid = {  
-    'n_estimators': [100, 200, 300],
-    'learning_rate': [0.1, 0.05, 0.01],
-    'max_depth': [3, 4, 5]
-}
+# Calculate metrics
+mse = mean_squared_error(y_true, y_pred)
+mae = mean_absolute_error(y_true, y_pred)
+r2 = r2_score(y_true, y_pred)
+mape = mean_absolute_percentage_error(y_true, y_pred)
 
-gb_regressor = GradientBoostingRegressor()
-grid_search = GridSearchCV(estimator=GradientBoostingRegressor(), param_grid=param_grid, cv=5)
-grid_search.fit(features_tensor.numpy(), target_tensor.numpy().ravel())
-
-print("Best Parameters: ", grid_search.best_params_)
-print("Best Score: ", grid_search.best_score_)
-
-# Train Gradient Boosting Regressor model
-gb_regressor = GradientBoostingRegressor(**grid_search.best_params_)
-gb_regressor.fit(features_tensor.numpy(), target_tensor.numpy().ravel())
-
-# Evaluate Gradient Boosting Regressor model
-y_pred = gb_regressor.predict(features_tensor.numpy())
-mse = mean_squared_error(target_tensor.numpy().ravel(), y_pred)
-mae = mean_absolute_error(target_tensor.numpy().ravel(), y_pred)
-r2 = r2_score(target_tensor.numpy().ravel(), y_pred)
 print("MSE: ", mse)
 print("MAE: ", mae)
 print("R2: ", r2)
+print("MAPE: ", mape)
 
-# Save Gradient Boosting Regressor model
-joblib.dump(gb_regressor, 'gb_regressor.joblib')
+# Save XGBoost model
+# joblib.dump(xgboost_model, 'xgboost_model.joblib')
 
-# Load Gradient Boosting Regressor model
-loaded_gb_regressor = joblib.load('gb_regressor.joblib')
+# Load XGBoost model
+loaded_xgboost_model = joblib.load('xgboost_model.joblib')
 
-# Make predictions using loaded Gradient Boosting Regressor model
-sample_data = {'Uildverlegch': ['7'], 'Mark': ['76'], 'Xrop': ['1'], 'Joloo': ['0'], 'Hudulguur': ['0'], 'Hutlugch': ['1'], 'Motor_bagtaamj': [1500], 'Uildverlesen_on': [2006], 'Orj_irsen_on': [2012], 'Yavsan_km': [0]}
+# Make predictions using loaded XGBoost model
+sample_data = {'Uildverlegch': ['7'], 'Mark': ['76'], 'Xrop': ['1'], 'Joloo': ['0'], 'Hudulguur': ['0'], 'Hutlugch': ['1'], 'Motor_bagtaamj': [1500], 'Uildverlesen_on': [2011], 'Orj_irsen_on': [2021], 'Yavsan_km': [120000]}
 sample_features_tensor = preprocess_sample_data(sample_data, label_encoders, scaler, poly)
-sample_pred = loaded_gb_regressor.predict(sample_features_tensor.numpy())
+sample_pred = loaded_xgboost_model.predict(sample_features_tensor.numpy())
 print("Predicted price: ", target_scaler.inverse_transform(sample_pred.reshape(-1, 1))[0][0])
+
 
 
 
