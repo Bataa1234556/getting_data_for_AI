@@ -99,7 +99,7 @@ def regression_accuracy(y_pred, y_true, tolerance=0.1):
     accurate_preds = (diff <= tolerance * np.abs(y_true)).sum()
     return accurate_preds
 
-file_path = r'C:\Users\batkh\Documents\getting_data_for_AI\.getting_data_for_AI\My_AI\excel\version1.xlsx'
+file_path = r'C:\Users\dvkka\Documents\AI-test-training\getting_data_for_AI\.getting_data_for_AI\My_AI\excel\version1.xlsx'
 features_tensor, target_tensor, label_encoders, scaler, target_scaler, poly = preprocess_data(file_path)
 print("Data preprocessed successfully!")
 
@@ -150,15 +150,19 @@ print("MAPE: ", mape)
 
 # Save XGBoost model
 # joblib.dump(xgboost_model, 'xgboost_model.joblib')
+# joblib.dump(poly, 'poly.joblib')
+# joblib.dump(label_encoders, 'labelencoder.joblib')
+# joblib.dump(scaler, 'scaler.joblib')
+# joblib.dump(target_scaler, 'target_scaler.joblib')
 
 # Load XGBoost model
-loaded_xgboost_model = joblib.load('xgboost_model.joblib')
+# loaded_xgboost_model = joblib.load('xgboost_model.joblib')
 
-# Make predictions using loaded XGBoost model
-sample_data = {'Uildverlegch': ['7'], 'Mark': ['76'], 'Xrop': ['1'], 'Joloo': ['0'], 'Hudulguur': ['0'], 'Hutlugch': ['1'], 'Motor_bagtaamj': [1500], 'Uildverlesen_on': [2011], 'Orj_irsen_on': [2021], 'Yavsan_km': [120000]}
-sample_features_tensor = preprocess_sample_data(sample_data, label_encoders, scaler, poly)
-sample_pred = loaded_xgboost_model.predict(sample_features_tensor.numpy())
-print("Predicted price: ", target_scaler.inverse_transform(sample_pred.reshape(-1, 1))[0][0])
+# # Make predictions using loaded XGBoost model
+# sample_data = {'Uildverlegch': ['7'], 'Mark': ['76'], 'Xrop': ['1'], 'Joloo': ['0'], 'Hudulguur': ['0'], 'Hutlugch': ['1'], 'Motor_bagtaamj': [1500], 'Uildverlesen_on': [2011], 'Orj_irsen_on': [2021], 'Yavsan_km': [120000]}
+# sample_features_tensor = preprocess_sample_data(sample_data, label_encoders, scaler, poly)
+# sample_pred = loaded_xgboost_model.predict(sample_features_tensor.numpy())
+# print("Predicted price: ", target_scaler.inverse_transform(sample_pred.reshape(-1, 1))[0][0])
 
 
 

@@ -1,46 +1,38 @@
-import os
-import pandas as pd
-from sklearn.preprocessing import LabelEncoder, StandardScaler, PolynomialFeatures
-from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
-import torch
-from torch.utils.data import Dataset, DataLoader, random_split
-import torch.nn as nn
-import torch.optim as optim
-import numpy as np
-import matplotlib.pyplot as plt
-import torch.nn.functional as F
-from sklearn.ensemble import GradientBoostingRegressor
 import joblib
+import torch
 from model_training import preprocess_sample_data
 
-# Load label_encoders, scaler, poly
-label_encoders = joblib.load('label_encoders.pkl')
-scaler = joblib.load('scaler.pkl')
-poly = joblib.load('poly.pkl')
+# Load the Gaussian Process Regressor model
+loaded_gp_regressor = joblib.load('gp_regressor.joblib')
 
-# Define or provide sample_data
+# Load preprocessing components
+label_encoders = joblib.load('label_encoders.joblib')
+scaler = joblib.load('scaler.joblib')
+target_scaler = joblib.load('target_scaler.joblib')
+poly = joblib.load('poly.joblib')
+
+# Sample data for prediction
 sample_data = {
-    'Uildverlegch': [4],  # List of values for each column
-    'Mark': [137],
-    'Motor_bagtaamj': [3500],
-    'Xrop': [1],
-    'Joloo': [1],
-    'Uildverlesen_on': [2014],
-    'Orj_irsen_on': [2022],
-    'Hudulguur': [0],
-    'Hutlugch': [2],
-    'Yavsan_km': [76000]
+    'Uildverlegch': ['7'],
+    'Mark': ['165'],
+    'Xrop': ['0'],
+    'Joloo': ['1'],
+    'Hudulguur': ['0'],
+    'Hutlugch': ['1'],
+    'Motor_bagtaamj': [10000],
+    'Uildverlesen_on': [2010],
+    'Orj_irsen_on': [2020],
+    'Yavsan_km': [900000]
 }
 
-# Load the trained GBR model
-loaded_gbr_model = joblib.load('gbr_models.pkl')
-
-
-
-# Preprocess sample data
+# Preprocess the sample data
 sample_features_tensor = preprocess_sample_data(sample_data, label_encoders, scaler, poly)
 
-# Make predictions using Gradient Boosting Regressor
-gbr_prediction = loaded_gbr_model.predict(sample_features_tensor.numpy())
-print("Predicted Price:", gbr_prediction[0])
-print("Gradient Boosting Regressor Prediction:", gbr_prediction)
+# Make prediction using the loaded model
+sample_pred, sample_std = loaded_gp_regressor.predict(sample_features_tensor.numpy(), return_std=True)
+
+# Inverse transform the prediction to get the actual price
+predicted_price = target_scaler.inverse_transform(sample_pred.reshape(-1, 1))[0][0]
+
+print("Predicted price: ", predicted_price)
+

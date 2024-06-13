@@ -1,0 +1,17 @@
+<!-- templates/success.html -->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Success</title>
+</head>
+<body>
+    <h1>Success</h1>
+    <p>Selected values:</p>
+    <ul>
+        {% for key, value in selected_values.items %}
+            <li>{{ key }}: {{ value }}</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

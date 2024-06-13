@@ -1,0 +1,133 @@
+<!-- templates/selection.html -->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Selection Form</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1>Selection Form</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Submit</button>
+    </form>
+
+    <script type="text/javascript">
+        document.addEventListener('DOMContentLoaded', function () {
+            $('select[name="uildverlegch"]').change(function () {
+                var url = "{% url 'My_AI:ajax_load_mark' %}"; 
+                var uildverlegchId = $(this).val(); 
+                $.ajax({
+                    url: url,
+                    data: {
+                        'uildverlegch': uildverlegchId
+                    },
+                    success: function (data) {
+                        $('select[name="mark"]').html(data);
+                    }
+                });
+            });
+
+            $('select[name="mark"]').change(function () {
+                var url = "{% url 'My_AI:ajax_load_motor_bagtaamj' %}";
+                var markId = $(this).val();
+                $.ajax({
+                    url: url,
+                    data: {
+                        'mark': markId
+                    },
+                    success: function (data) {
+                        $('select[name="motor_bagtaamj"]').html(data);
+                    }
+                });
+            });
+
+            $('select[name="motor_bagtaamj"]').change(function () {
+                var url = "{% url 'My_AI:ajax_load_xrop' %}";
+                var motorBagtaamjId = $(this).val();
+                $.ajax({
+                    url: url,
+                    data: {
+                        'motor_bagtaamj': motorBagtaamjId
+                    },
+                    success: function (data) {
+                        $('select[name="xrop"]').html(data);
+                    }
+                });
+            });
+
+            $('select[name="xrop"]').change(function () {
+                var url = "{% url 'My_AI:ajax_load_joloo' %}";
+                var xropId = $(this).val();
+                $.ajax({
+                    url: url,
+                    data: {
+                        'xrop': xropId
+                    },
+                    success: function (data) {
+                        $('select[name="joloo"]').html(data);
+                    }
+                });
+            });
+
+            $('select[name="joloo"]').change(function () {
+                var url = "{% url 'My_AI:ajax_load_uildverlesen_on' %}";
+                var jolooId = $(this).val();
+                $.ajax({
+                    url: url,
+                    data: {
+                        'joloo': jolooId
+                    },
+                    success: function (data) {
+                        $('select[name="uildverlesen_on"]').html(data);
+                    }
+                });
+            });
+
+            $('select[name="uildverlesen_on"]').change(function () {
+                var url = "{% url 'My_AI:ajax_load_orj_irsen_on' %}";
+                var uildverlesenOnId = $(this).val();
+                $.ajax({
+                    url: url,
+                    data: {
+                        'uildverlesen_on': uildverlesenOnId
+                    },
+                    success: function (data) {
+                        $('select[name="orj_irsen_on"]').html(data);
+                    }
+                });
+            });
+
+            $('select[name="orj_irsen_on"]').change(function () {
+                var url = "{% url 'My_AI:ajax_load_hutlugch' %}";
+                var orjIrsenOnId = $(this).val();
+                $.ajax({
+                    url: url,
+                    data: {
+                        'orj_irsen_on': orjIrsenOnId
+                    },
+                    success: function (data) {
+                        $('select[name="hutlugch"]').html(data);
+                    }
+                });
+            });
+
+            $('select[name="hutlugch"]').change(function () {
+                var url = "{% url 'My_AI:ajax_load_yavsan_km' %}";
+                var hutlugchId = $(this).val();
+                $.ajax({
+                    url: url,
+                    data: {
+                        'hutlugch': hutlugchId
+                    },
+                    success: function (data) {
+                        $('select[name="yavsan_km"]').html(data);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
