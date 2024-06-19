@@ -52,16 +52,24 @@ def preprocess_data(file_path, degree=2):
 
 # Function to preprocess sample data from a dictionary
 def preprocess_sample_data(data, label_encoders, scaler, poly):
+    # Ensure data values are lists
+    for key, value in data.items():
+        if not isinstance(value, list):
+            data[key] = [value]
+
+    # Convert to DataFrame
     df = pd.DataFrame(data)
 
+    # Encode categorical columns
     categorical_columns = ['Uildverlegch', 'Mark', 'Xrop', 'Joloo', 'Hudulguur', 'Hutlugch']
     for col in categorical_columns:
         if col in label_encoders:
             le = label_encoders[col]
-            df[col] = df[col].map(lambda s: le.transform([s])[0] if s in le.classes_ else -1)
+            df[col] = df[col].apply(lambda s: le.transform([s])[0] if s in le.classes_ else -1)
         else:
             df[col] = -1
 
+    # Scale numerical columns
     numerical_columns = ['Motor_bagtaamj', 'Uildverlesen_on', 'Orj_irsen_on', 'Yavsan_km']
     df[numerical_columns] = scaler.transform(df[numerical_columns])
 
@@ -75,6 +83,7 @@ def preprocess_sample_data(data, label_encoders, scaler, poly):
     if df.isnull().any().any():
         raise ValueError("NaNs found in sample features")
 
+    # Convert to tensor
     features_tensor = torch.tensor(df.values, dtype=torch.float32)
 
     return features_tensor

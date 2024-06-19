@@ -1,4 +1,3 @@
-
 from django.shortcuts import render
 from .forms import SelectionForm
 from django.http import JsonResponse
@@ -6,45 +5,9 @@ from .models import Mark, MotorBagtaamj, Xrop, Joloo, UildverlesenOn, OrjIrsenOn
 from .training.model_training import preprocess_sample_data
 import joblib
 import os
+import logging
 
-
-
-
-
-def selection_view(request):
-    if request.method == 'POST':
-        form = SelectionForm(request.POST)
-        if form.is_valid():
-            # Handle the valid form data here
-            selected_values = {
-                'uildverlegch': form.cleaned_data['uildverlegch'],
-                'mark': form.cleaned_data['mark'],
-                'motor_bagtaamj': form.cleaned_data['motor_bagtaamj'],
-                'xrop': form.cleaned_data['xrop'],
-                'joloo': form.cleaned_data['joloo'],
-                'uildverlesen_on': form.cleaned_data['uildverlesen_on'],
-                'orj_irsen_on': form.cleaned_data['orj_irsen_on'],
-                'hutlugch': form.cleaned_data['hutlugch'],
-                'yavsan_km': form.cleaned_data['yavsan_km'],
-            }
-            # Write to a file (for example)
-            with open('selected_values.txt', 'w') as f:
-                for key, value in selected_values.items():
-                    f.write(f'{key}: {value}\n')
-            return render(request, 'success.html', {'selected_values': selected_values})
-    else:
-        form = SelectionForm()
-    return render(request, 'selection.html', {'form': form})
-
-
-# Updated predict_price_view function without using error.html template
-from django.shortcuts import render, redirect
-from .forms import SelectionForm
-from django.http import JsonResponse
-from .models import Mark, MotorBagtaamj, Xrop, Joloo, UildverlesenOn, OrjIrsenOn, Hutlugch, YavsanKm
-from .training.model_training import preprocess_sample_data
-import joblib
-import os
+logger = logging.getLogger(__name__)
 
 # Load pre-trained models and scalers (adjust paths accordingly)
 xgboost_model_path = r'C:\Users\dvkka\Documents\AI-test-training\getting_data_for_AI\.getting_data_for_AI\xgboost_model.joblib'
@@ -62,6 +25,14 @@ poly = joblib.load(poly_path)
 # Function to preprocess user input and make predictions
 def predict_car_price(user_input):
     try:
+        # Ensure all values in user_input are lists
+        for key in user_input:
+            if not isinstance(user_input[key], list):
+                user_input[key] = [user_input[key]]
+
+        # Log the input data
+        logger.debug(f"User input after conversion to list: {user_input}")
+
         # Preprocess user input
         features_tensor = preprocess_sample_data(user_input, label_encoders, scaler, poly)
 
@@ -73,7 +44,7 @@ def predict_car_price(user_input):
 
         return predicted_price
     except Exception as e:
-        print(f"Prediction error: {e}")
+        logger.error(f"Prediction error: {e}")
         return None
 
 # Django view to handle form submission and prediction
@@ -81,57 +52,39 @@ def predict_price_view(request):
     if request.method == 'POST':
         form = SelectionForm(request.POST)
         if form.is_valid():
-            # Extract form data
-            uildverlegch = form.cleaned_data['uildverlegch']
-            mark = form.cleaned_data['mark']
-            xrop = form.cleaned_data['xrop']
-            joloo = form.cleaned_data['joloo']
-            hudulguur = form.cleaned_data['hudulguur']
-            hutlugch = form.cleaned_data['hutlugch']
-            motor_bagtaamj = form.cleaned_data['motor_bagtaamj']
-            uildverlesen_on = form.cleaned_data['uildverlesen_on']
-            orj_irsen_on = form.cleaned_data['orj_irsen_on']
-            yavsan_km = form.cleaned_data['yavsan_km']
-
-            # Prepare input data as a dictionary
+            # Extract form data and ensure all values are lists
             sample_data = {
-                'Uildverlegch': uildverlegch,
-                'Mark': mark,
-                'Xrop': xrop,
-                'Joloo': joloo,
-                'Hudulguur': hudulguur,
-                'Hutlugch': hutlugch,
-                'Motor_bagtaamj': motor_bagtaamj,
-                'Uildverlesen_on': uildverlesen_on,
-                'Orj_irsen_on': orj_irsen_on,
-                'Yavsan_km': yavsan_km
+                'Uildverlegch': [form.cleaned_data['uildverlegch']],
+                'Mark': [form.cleaned_data['mark']],
+                'Xrop': [form.cleaned_data['xrop']],
+                'Joloo': [form.cleaned_data['joloo']],
+                'Hudulguur': [form.cleaned_data['hudulguur']],
+                'Hutlugch': [form.cleaned_data['hutlugch']],
+                'Motor_bagtaamj': [form.cleaned_data['motor_bagtaamj']],
+                'Uildverlesen_on': [form.cleaned_data['uildverlesen_on']],
+                'Orj_irsen_on': [form.cleaned_data['orj_irsen_on']],
+                'Yavsan_km': [form.cleaned_data['yavsan_km']]
             }
 
             # Predict car price
             predicted_price = predict_car_price(sample_data)
 
-
             if predicted_price is not None:
-                # Redirect to prediction view with predicted price as query parameter
-                return redirect(f'/prediction/?predicted_price={predicted_price}')
+                # Render prediction.html with predicted price
+                return render(request, 'prediction.html', {'predicted_price': predicted_price})
             else:
                 # Handle prediction error directly (print or log the error)
                 return render(request, 'selection.html', {'form': form, 'error_message': 'Failed to predict price. Please try again.'})
-
     else:
         form = SelectionForm()
 
     return render(request, 'selection.html', {'form': form})
 
-# Define other load_* views similarly as per your original implementation
-
-
-
 # AJAX views for loading dropdown options
 def load_mark(request):
     uildverlegch_id = request.GET.get('uildverlegch')
-    mark = Mark.objects.filter(uildverlegch_id=uildverlegch_id).order_by('name')
-    return JsonResponse(list(mark.values('id', 'name')), safe=False)
+    marks = Mark.objects.filter(uildverlegch_id=uildverlegch_id).order_by('name')
+    return JsonResponse(list(marks.values('id', 'name')), safe=False)
 
 def load_motor_bagtaamj(request):
     mark_id = request.GET.get('mark')

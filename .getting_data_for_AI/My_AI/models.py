@@ -1,5 +1,3 @@
-# myapp/models.py
-
 from django.db import models
 
 class Uildverlegch(models.Model):
@@ -221,39 +219,34 @@ class MotorBagtaamj(models.Model):
         return self.size
 
 class Xrop(models.Model):
-
     AUTO = 1
     MECHANICH = 0
 
     XROP_CHOICES = [
         (AUTO, 'Автомат'),
-        (MECHANICH, 'Механик')
+        (MECHANICH, 'Механик'),
     ]
-
 
     type = models.PositiveSmallIntegerField(choices=XROP_CHOICES)
     motor_bagtaamj = models.ForeignKey(MotorBagtaamj, on_delete=models.CASCADE)
 
-
-
     def __str__(self):
-        return self.type
+        return self.get_type_display()
 
 class Joloo(models.Model):
-
     ZUW = 1
     BURUU = 0
 
     JOLOO_CHOICES = [
         (ZUW, 'Зөв'),
-        (BURUU, 'Буруу')
+        (BURUU, 'Буруу'),
     ]
 
     type = models.PositiveSmallIntegerField(choices=JOLOO_CHOICES)
     xrop = models.ForeignKey(Xrop, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.type
+        return self.get_type_display()
 
 class UildverlesenOn(models.Model):
     year = models.CharField(max_length=100)
@@ -294,12 +287,18 @@ class YavsanKm(models.Model):
         return self.distance
 
 class Hudulguur(models.Model):
+    GASOLIN = 0
+    GAS = 1
+    DIESEL = 2
+    HYBRID = 3
+    ELECTRIC = 4
+
     HUDULGUUR_CHOICES = [
-        ('Бензин', 'Бензин'),
-        ('Газ', 'Газ'),
-        ('Дизель', 'Дизель'),
-        ('Хайбрид', 'Хайбрид'),
-        ('Цахилгаан', 'Цахилгаан'),
+        (GASOLIN, 'Бензин'),
+        (GAS, 'Газ'),
+        (DIESEL, 'Дизель'),
+        (HYBRID, 'Хайбрид'),
+        (ELECTRIC, 'Цахилгаан'),
     ]
     type = models.CharField(max_length=100, choices=HUDULGUUR_CHOICES)
 

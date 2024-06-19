@@ -43,7 +43,7 @@ INSTALLED_APPS = [
     'data_retrive',
     'requests',
     'selenium',
-    
+    'data_to_My_AI',
 ]
 
 MIDDLEWARE = [

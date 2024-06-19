@@ -1,132 +1,62 @@
-<!-- templates/selection.html -->
-
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Selection Form</title>
+    <title>Car Selection</title>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
-    <h1>Selection Form</h1>
     <form method="post">
         {% csrf_token %}
         {{ form.as_p }}
-        <button type="submit">Submit</button>
+        <button type="submit">Predict Price</button>
     </form>
 
     <script type="text/javascript">
-        document.addEventListener('DOMContentLoaded', function () {
-            $('select[name="uildverlegch"]').change(function () {
-                var url = "{% url 'My_AI:ajax_load_mark' %}"; 
-                var uildverlegchId = $(this).val(); 
-                $.ajax({
-                    url: url,
-                    data: {
-                        'uildverlegch': uildverlegchId
-                    },
-                    success: function (data) {
-                        $('select[name="mark"]').html(data);
-                    }
-                });
+        function updateDropdown(url, sourceId, targetId, placeholder) {
+            var sourceVal = $(sourceId).val();
+            $.ajax({
+                url: url,
+                data: { 'id': sourceVal },
+                success: function (data) {
+                    var $target = $(targetId);
+                    $target.html('<option value="">' + placeholder + '</option>');
+                    $.each(data, function (key, value) {
+                        $target.append('<option value="' + value.id + '">' + value.name + '</option>');
+                    });
+                }
             });
+        }
 
-            $('select[name="mark"]').change(function () {
-                var url = "{% url 'My_AI:ajax_load_motor_bagtaamj' %}";
-                var markId = $(this).val();
-                $.ajax({
-                    url: url,
-                    data: {
-                        'mark': markId
-                    },
-                    success: function (data) {
-                        $('select[name="motor_bagtaamj"]').html(data);
-                    }
-                });
-            });
+        $("#id_uildverlegch").change(function () {
+            updateDropdown("{% url 'load_mark' %}", "#id_uildverlegch", "#id_mark", "Select a Mark");
+        });
 
-            $('select[name="motor_bagtaamj"]').change(function () {
-                var url = "{% url 'My_AI:ajax_load_xrop' %}";
-                var motorBagtaamjId = $(this).val();
-                $.ajax({
-                    url: url,
-                    data: {
-                        'motor_bagtaamj': motorBagtaamjId
-                    },
-                    success: function (data) {
-                        $('select[name="xrop"]').html(data);
-                    }
-                });
-            });
+        $("#id_mark").change(function () {
+            updateDropdown("{% url 'load_motor_bagtaamj' %}", "#id_mark", "#id_motor_bagtaamj", "Select Motor Bagtaamj");
+        });
 
-            $('select[name="xrop"]').change(function () {
-                var url = "{% url 'My_AI:ajax_load_joloo' %}";
-                var xropId = $(this).val();
-                $.ajax({
-                    url: url,
-                    data: {
-                        'xrop': xropId
-                    },
-                    success: function (data) {
-                        $('select[name="joloo"]').html(data);
-                    }
-                });
-            });
+        $("#id_motor_bagtaamj").change(function () {
+            updateDropdown("{% url 'load_xrop' %}", "#id_motor_bagtaamj", "#id_xrop", "Select Xrop");
+        });
 
-            $('select[name="joloo"]').change(function () {
-                var url = "{% url 'My_AI:ajax_load_uildverlesen_on' %}";
-                var jolooId = $(this).val();
-                $.ajax({
-                    url: url,
-                    data: {
-                        'joloo': jolooId
-                    },
-                    success: function (data) {
-                        $('select[name="uildverlesen_on"]').html(data);
-                    }
-                });
-            });
+        $("#id_xrop").change(function () {
+            updateDropdown("{% url 'load_joloo' %}", "#id_xrop", "#id_joloo", "Select Joloo");
+        });
 
-            $('select[name="uildverlesen_on"]').change(function () {
-                var url = "{% url 'My_AI:ajax_load_orj_irsen_on' %}";
-                var uildverlesenOnId = $(this).val();
-                $.ajax({
-                    url: url,
-                    data: {
-                        'uildverlesen_on': uildverlesenOnId
-                    },
-                    success: function (data) {
-                        $('select[name="orj_irsen_on"]').html(data);
-                    }
-                });
-            });
+        $("#id_joloo").change(function () {
+            updateDropdown("{% url 'load_uildverlesen_on' %}", "#id_joloo", "#id_uildverlesen_on", "Select Uildverlesen On");
+        });
 
-            $('select[name="orj_irsen_on"]').change(function () {
-                var url = "{% url 'My_AI:ajax_load_hutlugch' %}";
-                var orjIrsenOnId = $(this).val();
-                $.ajax({
-                    url: url,
-                    data: {
-                        'orj_irsen_on': orjIrsenOnId
-                    },
-                    success: function (data) {
-                        $('select[name="hutlugch"]').html(data);
-                    }
-                });
-            });
+        $("#id_uildverlesen_on").change(function () {
+            updateDropdown("{% url 'load_orj_irsen_on' %}", "#id_uildverlesen_on", "#id_orj_irsen_on", "Select Orj Irsen On");
+        });
 
-            $('select[name="hutlugch"]').change(function () {
-                var url = "{% url 'My_AI:ajax_load_yavsan_km' %}";
-                var hutlugchId = $(this).val();
-                $.ajax({
-                    url: url,
-                    data: {
-                        'hutlugch': hutlugchId
-                    },
-                    success: function (data) {
-                        $('select[name="yavsan_km"]').html(data);
-                    }
-                });
-            });
+        $("#id_orj_irsen_on").change(function () {
+            updateDropdown("{% url 'load_hutlugch' %}", "#id_orj_irsen_on", "#id_hutlugch", "Select Hutlugch");
+        });
+
+        $("#id_hutlugch").change(function () {
+            updateDropdown("{% url 'load_yavsan_km' %}", "#id_hutlugch", "#id_yavsan_km", "Select Yavsan Km");
         });
     </script>
 </body>

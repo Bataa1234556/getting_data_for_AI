@@ -4,7 +4,7 @@ from .models import Uildverlegch, Mark, MotorBagtaamj, Xrop, Joloo, Uildverlesen
 class SelectionForm(forms.Form):
     uildverlegch = forms.ChoiceField(choices=Uildverlegch.UILVERLEGCH_CHOICES, required=True)
     hudulguur = forms.ChoiceField(choices=Hudulguur.HUDULGUUR_CHOICES, required=True)
-    mark = forms.ChoiceField(choices=Mark.MARK_CHOICES, required=True)
+    mark = forms.ChoiceField(choices=[], required=True)  # Initialize with empty choices
     motor_bagtaamj = forms.CharField(required=True)
     xrop = forms.ChoiceField(choices=Xrop.XROP_CHOICES, required=True)
     joloo = forms.ChoiceField(choices=Joloo.JOLOO_CHOICES, required=True)
@@ -15,6 +15,14 @@ class SelectionForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        # Dynamically initialize choices for the mark field if uildverlegch is provided
+        if 'uildverlegch' in self.data:
+            try:
+                uildverlegch_id = int(self.data.get('uildverlegch'))
+                self.fields['mark'].choices = [(mark.id, mark.name) for mark in Mark.objects.filter(uildverlegch_id=uildverlegch_id)]
+            except (ValueError, TypeError):
+                self.fields['mark'].choices = []
 
         # Initialize queryset for xrop field
         if 'motor_bagtaamj' in self.data:

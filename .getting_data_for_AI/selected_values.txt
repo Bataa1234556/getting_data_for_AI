@@ -1,9 +1,9 @@
 uildverlegch: 0
-mark: 106
+mark: 0
 motor_bagtaamj: 3500
 xrop: 1
-joloo: 1
-uildverlesen_on: 2000
+joloo: 0
+uildverlesen_on: 2010
 orj_irsen_on: 2022
-hutlugch: 0
-yavsan_km: 1000
+hutlugch: 1
+yavsan_km: 10000
